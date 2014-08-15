@@ -148,11 +148,11 @@ int main(int argc,  char* argv[])
 
 		cout << "Start master orthorectification" << endl;
 		ossimArgumentParser ap_master(&originalArgCount, argv_master);
-		//ortho(ap_master); 
+		ortho(ap_master); 
 	
 		cout << "Start slave orthorectification" << endl;
 		ossimArgumentParser ap_slave(&originalArgCount2, argv_slave);
-		//ortho(ap_slave);
+		ortho(ap_slave);
        
 		// TP GENERATOR
         // opening output ortho
