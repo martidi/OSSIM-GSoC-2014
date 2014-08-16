@@ -1,3 +1,15 @@
+//----------------------------------------------------------------------------
+//
+// License:  See top level LICENSE.txt file.
+//
+// File: TPgenerator.h
+//
+// Author:  Martina Di Rita
+//
+// Description: Class provides a TPs generator
+//
+//----------------------------------------------------------------------------
+
 #include "ossim/imaging/ossimImageHandler.h"
 #include "ossim/imaging/ossimImageHandlerRegistry.h"
 #include <ossim/base/ossimObject.h>
@@ -27,9 +39,6 @@ public:
 	cv::vector<cv::KeyPoint> keypoints1, keypoints2;
 	vector<cv::DMatch > good_matches;
 	double slave_x, slave_y, master_x, master_y;
-  
 };
 
 
-
-               

@@ -1,3 +1,15 @@
+//----------------------------------------------------------------------------
+//
+// License:  See top level LICENSE.txt file.
+//
+// File: openCVtestclass.cpp
+//
+// Author:  Martina Di Rita
+//
+// Description: Class provides OpenCV functions for DSM extraction
+//
+//----------------------------------------------------------------------------
+
 #include <ossim/base/ossimString.h>
 #include <ossim/base/ossimNotify.h>
 #include <ossim/base/ossimTrace.h>
@@ -42,7 +54,7 @@ openCVtestclass::openCVtestclass(ossimRefPtr<ossimImageData> master, ossimRefPtr
 	memcpy(master_mat.ptr(), (void*) master->getUshortBuf(), 2*master->getWidth()*master->getHeight());
 	memcpy(slave_mat.ptr(), (void*) slave->getUshortBuf(), 2*slave->getWidth()*slave->getHeight());
 	
-	cout << "coversione effettuata" << endl;
+	cout << "OSSIM->OpenCV image conversion done" << endl;
 	
 	// Rotation for along-track images
 	cv::transpose(master_mat, master_mat);
@@ -51,7 +63,6 @@ openCVtestclass::openCVtestclass(ossimRefPtr<ossimImageData> master, ossimRefPtr
 	cv::transpose(slave_mat, slave_mat);
 	cv::flip(slave_mat, slave_mat, 1);	
 }
-
 
 
 bool openCVtestclass::execute()
@@ -76,26 +87,30 @@ bool openCVtestclass::execute()
 	//cv::Ptr<cv::CLAHE> filtro = cv::createCLAHE();
     //filtro->apply(master_mat_8U, master_mat_8U); 
     //filtro->apply(slave_mat_warp, slave_mat_warp);
+    
     cv::imwrite("Master_8bit_bSGM.tif",  master_mat_8U);
     cv::imwrite("Slave_8bit_bSGM.tif",  slave_mat_warp);
     	
 	DisparityMap* dense_matcher = new DisparityMap();
 	
+	//***
+	// Abilitate for computing disparity on different scales 
+	/*
 	double fscale = 1.0/1.0;
 	cv::resize(master_mat_8U, master_mat_8U, cv::Size(), fscale, fscale, cv::INTER_AREA );
 	cv::resize(slave_mat_warp, slave_mat_warp, cv::Size(), fscale, fscale, cv::INTER_AREA );	
 	cv::namedWindow( "Scaled master", CV_WINDOW_NORMAL );
 	cv::imshow( "Scaled master", master_mat_8U);
-	
 	cv::namedWindow( "Scaled slave", CV_WINDOW_NORMAL );
 	cv::imshow( "Scaled slave", slave_mat_warp);
+	*/
+	//***
 	
 	out_disp = dense_matcher->execute(master_mat_8U, slave_mat_warp);
 	
 	
 	return true;
 }
-
 
 bool openCVtestclass::writeDisparity(double conv_factor)
 {
@@ -120,9 +135,8 @@ bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, oss
     
 	out_16bit_disp = (out_disp/16.0) * conv_factor;
 	
-	cout<< "DSM GENERATION" << endl;
+	cout<< "DSM GENERATION \t wait few minutes ..." << endl;
 	
-	//cout<< master_geom << endl;
  
 	for(int i=0; i< out_16bit_disp.rows; i++)
 	{
@@ -150,6 +164,4 @@ bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, oss
 	
 	return true;
 }
-
-
 

@@ -1,3 +1,15 @@
+//----------------------------------------------------------------------------
+//
+// License:  See top level LICENSE.txt file.
+//
+// File: TPgeneraotr.cpp
+//
+// Author:  Martina Di Rita
+//
+// Description: Class provides a TPs generator
+//
+//----------------------------------------------------------------------------
+
 #include <ossim/base/ossimString.h>
 #include <ossim/base/ossimNotify.h>
 #include <ossim/base/ossimTrace.h>
@@ -145,8 +157,7 @@ cv::Mat TPgenerator::estRT(std::vector<cv::Point2f> master, std::vector<cv::Poin
 	cout << trX << endl << endl;
 	
 	}
-	
-	
+		
 	cout << "Difference " << endl;	
 	//cout << A*x_approx-B << endl;
 	
@@ -228,7 +239,7 @@ void TPgenerator::TPdraw()
 	cv::namedWindow("TP matched", CV_WINDOW_NORMAL );
 	cv::imshow("TP matched", img_matches );	
    
-	 cv::waitKey(0);
+	cv::waitKey(0);
 }
 
 void TPgenerator::TPgen()
@@ -263,7 +274,7 @@ void TPgenerator::TPgen()
 	cout << "Max dist = " << max_dist << endl;
 	
 	
-	// selection of the better 2% descriptors 
+	// selection of the better 1% descriptors 
 	
 	int N_TOT = descriptors1.rows;
 	int N_GOOD = 0, N_ITER = 0;
@@ -431,5 +442,4 @@ cv::Mat TPgenerator::warp(cv::Mat slave_16bit)
     
     return warp_dst;
 }	
-
 

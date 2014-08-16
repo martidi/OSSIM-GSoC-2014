@@ -1,3 +1,14 @@
+//----------------------------------------------------------------------------
+//
+// License:  See top level LICENSE.txt file.
+//
+// File: openCVtestclass.h
+//
+// Author:  Martina Di Rita
+//
+// Description: Class provides OpenCV functions for DSM extraction
+//
+//----------------------------------------------------------------------------
 
 #include <ossim/base/ossimObject.h>
 #include <ossim/base/ossimDpt.h>

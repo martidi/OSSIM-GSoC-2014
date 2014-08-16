@@ -1,3 +1,14 @@
+//----------------------------------------------------------------------------
+//
+// License:  See top level LICENSE.txt file.
+//
+// File: DisparityMap.h
+//
+// Author:  Martina Di Rita
+//
+// Description: Class provides Disparity Map extraction
+//
+//----------------------------------------------------------------------------
 
 #include <ossim/base/ossimObject.h>
 #include <ossim/base/ossimDpt.h>
