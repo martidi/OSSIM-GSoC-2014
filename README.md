@@ -20,7 +20,7 @@ In order to compile and install this OSSIM Plug-In use the following instruction
 		$git init 
 		$git remote add origin https://github.com/martidi/OSSIM-GSoC-2014.git
 		$git pull origin master
-	5. Re-compile the OSSIM version enabling the OPENCV plugin option
+	5. Re-compile the OSSIM version enabling the OPENCV plugin option in the configuration file
 	
 For any doubts or issues please email me: martina.dirita@uniroma1.it
 
