@@ -66,6 +66,4 @@ add_subdirectory(apps)
 # Install app:
 #install(TARGETS ossim-main-opencv DESTINATION bin )
 
- 
-
 
