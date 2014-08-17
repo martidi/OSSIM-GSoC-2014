@@ -25,11 +25,8 @@
 class DisparityMap
 {
 public:
-   DisparityMap();
-   cv::Mat execute(cv::Mat master_mat, cv::Mat slave_mat);   
-
+	DisparityMap();
+	cv::Mat execute(cv::Mat master_mat, cv::Mat slave_mat);   
 };
-
-
 
                

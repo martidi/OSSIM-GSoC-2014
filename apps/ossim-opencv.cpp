@@ -71,7 +71,7 @@ bool ortho (ossimArgumentParser argPars)
 			<< "elapsed time in seconds: "
 			<< std::setiosflags(ios::fixed)
 			<< std::setprecision(3)
-			<< ossimTimer::instance()->time_s() << endl;
+			<< ossimTimer::instance()->time_s() << endl << endl;
 		}
 	}
 	catch (const ossimException& e)
@@ -95,8 +95,8 @@ int main(int argc,  char* argv[])
         char* argv_master[10];
         char* argv_slave[10];
         
-        cout << "MASTER DIRECTORY:" << " " << argv[1] << endl;
-        cout << "SLAVE DIRECTORY:"  << " " << argv[2] << endl;
+        cout << endl << "MASTER DIRECTORY:" << " " << argv[1] << endl;
+        cout << "SLAVE DIRECTORY:"  << " " << argv[2] << endl << endl;
 
         // Making fake argv master & slave
 
@@ -135,7 +135,7 @@ int main(int argc,  char* argv[])
 			cout << "TILE CUT:" << " " << "Lat_min" << " " << argv[6] 
         						<< " " << "Lon_min" << " " << argv[7]
         						<< " " << "Lat_max" << " " << argv[8]
-        						<< " " << "Lon_max" << " " << argv[9] << endl;
+        						<< " " << "Lon_max" << " " << argv[9] << endl << endl;
 		}	
 
 		// Orthorectification
@@ -147,23 +147,23 @@ int main(int argc,  char* argv[])
 		ossimArgumentParser ap_slave(&originalArgCount2, argv_slave);
 		ortho(ap_slave);
 		
-		//Elevation manager instance
+		// Elevation manager instance
         ossimElevManager* elev = ossimElevManager::instance();		
   
 		// ImageHandlers & ImageGeometry instance
-        ossimImageHandler* master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[3]));             
-        ossimImageHandler* slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[4]));
+		ossimImageHandler* master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[3]));             
+		ossimImageHandler* slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[4]));
   
-        ossimImageHandler* raw_master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[1]));
-        ossimImageHandler* raw_slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[2]));
+		ossimImageHandler* raw_master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[1]));
+		ossimImageHandler* raw_slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[2]));
                       
     				
 		if(master_handler && slave_handler && raw_master_handler && raw_slave_handler) // enter if exist both master and slave  
 		{
 			// Load ortho images
-			ossimIrect bounds_master = master_handler->getBoundingRect(0); 			//gli sto dicendo di darmi i confini delle immagini
+			ossimIrect bounds_master = master_handler->getBoundingRect(0); 			
 			ossimIrect bounds_slave = slave_handler->getBoundingRect(0);   
-			ossimRefPtr<ossimImageData> img_master = master_handler->getTile(bounds_master, 0);           //noti i confini delle immagini, sto facendo un tile di tutta l'immagine   
+			ossimRefPtr<ossimImageData> img_master = master_handler->getTile(bounds_master, 0);          
 			ossimRefPtr<ossimImageData> img_slave = slave_handler->getTile(bounds_slave, 0); 
 
 			// TPs generation 
@@ -203,40 +203,36 @@ int main(int argc,  char* argv[])
 					double DeltaI_Slave = punto_img_up.x - punto_img.x;
 					double DeltaJ_Slave = punto_img_up.y - punto_img.y;
 					
-					cout << DeltaI_Master << "\t"<< DeltaJ_Master <<"\t" <<  DeltaI_Slave << "\t" << DeltaJ_Slave << "\t" 
-					     << DeltaI_Master-DeltaI_Slave << "\t" << DeltaJ_Master - DeltaJ_Slave  <<endl;
+					//cout << DeltaI_Master << "\t"<< DeltaJ_Master <<"\t" <<  DeltaI_Slave << "\t" << DeltaJ_Slave << "\t" 
+							//<< DeltaI_Master-DeltaI_Slave << "\t" << DeltaJ_Master - DeltaJ_Slave  <<endl;
 										
 					conv_factor += DeltaJ_Slave - DeltaJ_Master;
 				}			
 			}	        
         
 			conv_factor = conv_factor/(9.0*100.0);
-			cout << "Conversion factor \t"<< conv_factor << endl;
+			cout << "Conversion factor \t"<< conv_factor << endl << endl;
 			
 			// From Disparity to DSM
 			ossimImageGeometry* master_geom = master_handler->getImageGeometry().get();			
 			test->computeDSM(conv_factor, elev, master_geom);
 			
 			// Geocoded DSM generation
-			ossimImageHandler *handler_disp = ossimImageHandlerRegistry::instance()->open(ossimFilename("DSM.tif"));
-            handler_disp->setImageGeometry(master_geom);       
-            ossimImageFileWriter* writer = ossimImageWriterFactoryRegistry::instance()->createWriter(ossimFilename("Geocoded_DSM.tif"));
-            writer->connectMyInputTo(0, handler_disp);
-            writer->execute();
+			ossimImageHandler *handler_disp = ossimImageHandlerRegistry::instance()->open(ossimFilename("Temp_DSM.tif"));
+			handler_disp->setImageGeometry(master_geom);       
+			ossimImageFileWriter* writer = ossimImageWriterFactoryRegistry::instance()->createWriter(ossimFilename("Geocoded_DSM.tif"));
+			writer->connectMyInputTo(0, handler_disp);
+			writer->execute();
             
 			delete writer;
 			delete test;				
 		}
-	}   
-		   
+	}      
 	catch (const ossimException& e)
 	{
-     	 ossimNotify(ossimNotifyLevel_WARN) << e.what() << endl;
-      	return 1;
+		ossimNotify(ossimNotifyLevel_WARN) << e.what() << endl;
+		return 1;
 	}
   
 	return 0;
 }
-
-/*./bin/ossim-opencv ../../../../img_data/po_3800808_0000000/po_3800808_pan_0000000.tif ../../../../img_data/po_3800808_0010000/po_3800808_pan_0010000.tif ../../../../img_data/risultati_epipolar/ortho_ritaglio1.jpg ../../../../img_data/risultati_epipolar/ortho_ritaglio2.jpg --cut-bbox-ll 44.603 11.816 44.623 11.851 */
-/*./bin/ossim-opencv ../../../../Prove_OpenCV/TEST_SGM/Argenta/Argenta_Left.tif ../../../../Prove_OpenCV/TEST_SGM/Argenta/Argenta_Right.tif ../../../../Prove_OpenCV/TEST_SGM/risultati/Argenta_Right_ortho.jpg ../../../../Prove_OpenCV/TEST_SGM/risultati/Argenta_Right_ortho.jpg --cut-bbox-ll 44.603 11.816 44.623 11.851*/

@@ -67,29 +67,26 @@ openCVtestclass::openCVtestclass(ossimRefPtr<ossimImageData> master, ossimRefPtr
 
 bool openCVtestclass::execute()
 {
-		double minVal_master, maxVal_master, minVal_slave, maxVal_slave;
-		cv::Mat master_mat_8U;
-		cv::Mat slave_mat_8U;  
+	double minVal_master, maxVal_master, minVal_slave, maxVal_slave;
+	cv::Mat master_mat_8U;
+	cv::Mat slave_mat_8U;  
       
-   		minMaxLoc( master_mat, &minVal_master, &maxVal_master );
-   		minMaxLoc( slave_mat, &minVal_slave, &maxVal_slave );
-		master_mat.convertTo( master_mat_8U, CV_8UC1, 255.0/(maxVal_master - minVal_master), -minVal_master*255.0/(maxVal_master - minVal_master));
-		slave_mat.convertTo( slave_mat_8U, CV_8UC1, 255.0/(maxVal_slave - minVal_slave), -minVal_slave*255.0/(maxVal_slave - minVal_slave)); 
+   	minMaxLoc( master_mat, &minVal_master, &maxVal_master );
+   	minMaxLoc( slave_mat, &minVal_slave, &maxVal_slave );
+	master_mat.convertTo( master_mat_8U, CV_8UC1, 255.0/(maxVal_master - minVal_master), -minVal_master*255.0/(maxVal_master - minVal_master));
+	slave_mat.convertTo( slave_mat_8U, CV_8UC1, 255.0/(maxVal_slave - minVal_slave), -minVal_slave*255.0/(maxVal_slave - minVal_slave)); 
 	
-		TPgenerator* TPfinder = new TPgenerator(master_mat_8U, slave_mat_8U);
-		TPfinder->run();
-		TPfinder->TPgen();
-		TPfinder->TPdraw();
-
+	TPgenerator* TPfinder = new TPgenerator(master_mat_8U, slave_mat_8U);
+	TPfinder->run();
 	
 	cv::Mat slave_mat_warp = TPfinder->warp(slave_mat);
 	
 	//cv::Ptr<cv::CLAHE> filtro = cv::createCLAHE();
-    //filtro->apply(master_mat_8U, master_mat_8U); 
-    //filtro->apply(slave_mat_warp, slave_mat_warp);
+	//filtro->apply(master_mat_8U, master_mat_8U); 
+	//filtro->apply(slave_mat_warp, slave_mat_warp);
     
-    cv::imwrite("Master_8bit_bSGM.tif",  master_mat_8U);
-    cv::imwrite("Slave_8bit_bSGM.tif",  slave_mat_warp);
+	//cv::imwrite("Master_8bit_bSGM.tif",  master_mat_8U);
+	//cv::imwrite("Slave_8bit_bSGM.tif",  slave_mat_warp);
     	
 	DisparityMap* dense_matcher = new DisparityMap();
 	
@@ -108,36 +105,20 @@ bool openCVtestclass::execute()
 	
 	out_disp = dense_matcher->execute(master_mat_8U, slave_mat_warp);
 	
-	
-	return true;
-}
-
-bool openCVtestclass::writeDisparity(double conv_factor)
-{
-	cv::transpose(out_disp, out_disp);
-    cv::flip(out_disp, out_disp, 0);
-    
-	out_disp = (out_disp/16.0) * conv_factor;
-	cv::imwrite("mDisparity.jpg", out_disp);
-	
 	return true;
 }
 
 bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, ossimImageGeometry* master_geom)
 {
 	cv::transpose(out_disp, out_disp);
-    cv::flip(out_disp, out_disp, 0);
+	cv::flip(out_disp, out_disp, 0);
     
-    
-    cv::Mat out_16bit_disp = cv::Mat::zeros (out_disp.size(),CV_64F);
-    
-    out_disp.convertTo(out_disp, CV_64F);
-    
+	cv::Mat out_16bit_disp = cv::Mat::zeros (out_disp.size(),CV_64F);
+	out_disp.convertTo(out_disp, CV_64F);
 	out_16bit_disp = (out_disp/16.0) * conv_factor;
 	
 	cout<< "DSM GENERATION \t wait few minutes ..." << endl;
-	
- 
+
 	for(int i=0; i< out_16bit_disp.rows; i++)
 	{
 		for(int j=0; j< out_16bit_disp.cols; j++)
@@ -151,17 +132,29 @@ bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, oss
 	}
  
 	cv::Mat intDSM; 
-	
+	// Conversion from float to integer to write and show
 	out_16bit_disp.convertTo(intDSM, CV_16U);
  
-	cv::imwrite("DSM.tif", intDSM);
+	cv::imwrite("Temp_DSM.tif", intDSM);
 	
 	double minVal, maxVal;
 	minMaxLoc( intDSM, &minVal, &maxVal );
 	intDSM.convertTo( intDSM, CV_8UC1, 255/(maxVal - minVal), -minVal*255/(maxVal - minVal));   
- 
-	cv::imshow("DSM", intDSM);
+	
+	cv::namedWindow("Temp_DSM", CV_WINDOW_NORMAL );
+	cv::imshow("Temp_DSM", intDSM);
+	cv::waitKey(0);	
 	
 	return true;
 }
 
+bool openCVtestclass::writeDisparity(double conv_factor)
+{
+	cv::transpose(out_disp, out_disp);
+	cv::flip(out_disp, out_disp, 0);
+    
+	out_disp = (out_disp/16.0) * conv_factor;
+	cv::imwrite("mDisparity.jpg", out_disp);
+	
+	return true;
+}

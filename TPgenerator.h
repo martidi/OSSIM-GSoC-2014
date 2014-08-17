@@ -41,4 +41,3 @@ public:
 	double slave_x, slave_y, master_x, master_y;
 };
 
-
