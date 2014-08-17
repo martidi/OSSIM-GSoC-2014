@@ -165,11 +165,11 @@ cv::Mat TPgenerator::estRT(std::vector<cv::Point2f> master, std::vector<cv::Poin
 	/// ***rigorous model end*** 	
  		
 	/// ***linear model start***
-    /*cv::Mat result = cv::Mat::zeros (2, 1, 6);
-    cv::Mat A = cv::Mat::zeros(m,2,6);
-    cv::Mat B = cv::Mat::zeros(m,1,6);
+	/*cv::Mat result = cv::Mat::zeros (2, 1, 6);
+	cv::Mat A = cv::Mat::zeros(m,2,6);
+	cv::Mat B = cv::Mat::zeros(m,1,6);
     
-	for (size_t i=0; i<m ; i++)
+    for (size_t i=0; i<m ; i++)
 		{
 			A.at<double>(i,0) = bar_slave[i].y;
 			A.at<double>(i,1) = 1.0;
@@ -178,8 +178,8 @@ cv::Mat TPgenerator::estRT(std::vector<cv::Point2f> master, std::vector<cv::Poin
 		}	
 	
 	cv::solve(A, B, result, cv::DECOMP_SVD);
-    cv::Mat trX;
-    cv::transpose(result, trX);
+	cv::Mat trX;
+	cv::transpose(result, trX);
 
 	cout << "Result matrix "<< endl;
 	cout << trX << endl << endl;
@@ -391,7 +391,7 @@ cv::Mat TPgenerator::warp(cv::Mat slave_16bit)
 	cv::Mat warp_dst_16bit = cv::Mat::zeros(slave_16bit.rows, slave_16bit.cols, slave_16bit.type());
 	
 	cv::warpAffine(slave_mat, warp_dst, rot_matrix, warp_dst.size());
-    cv::warpAffine(slave_16bit, warp_dst_16bit, rot_matrix, warp_dst.size());
+	cv::warpAffine(slave_16bit, warp_dst_16bit, rot_matrix, warp_dst.size());
     
 	cv::namedWindow("Master image", CV_WINDOW_NORMAL);
 	cv::imshow("Master image", master_mat );

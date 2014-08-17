@@ -60,7 +60,7 @@ bool ortho (ossimArgumentParser argPars)
 	ossimRefPtr<ossimChipperUtil> chipper = new ossimChipperUtil;
 
 	try
-    {      
+	{      
 		bool continue_after_init = chipper->initialize(argPars);
 		if (continue_after_init)
 		{      
@@ -148,7 +148,7 @@ int main(int argc,  char* argv[])
 		ortho(ap_slave);
 		
 		// Elevation manager instance
-        ossimElevManager* elev = ossimElevManager::instance();		
+		ossimElevManager* elev = ossimElevManager::instance();		
   
 		// ImageHandlers & ImageGeometry instance
 		ossimImageHandler* master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[3]));             

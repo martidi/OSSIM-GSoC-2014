@@ -49,7 +49,7 @@ openCVtestclass::openCVtestclass(ossimRefPtr<ossimImageData> master, ossimRefPtr
 {
 	// Create the OpenCV images
 	master_mat.create(cv::Size(master->getWidth(), master->getHeight()), CV_16UC1);
-    slave_mat.create(cv::Size(slave->getWidth(), slave->getHeight()), CV_16UC1);
+	slave_mat.create(cv::Size(slave->getWidth(), slave->getHeight()), CV_16UC1);
 	
 	memcpy(master_mat.ptr(), (void*) master->getUshortBuf(), 2*master->getWidth()*master->getHeight());
 	memcpy(slave_mat.ptr(), (void*) slave->getUshortBuf(), 2*slave->getWidth()*slave->getHeight());
