@@ -70,12 +70,12 @@ openCVtestclass::openCVtestclass(ossimRefPtr<ossimImageData> master, ossimRefPtr
 
 bool openCVtestclass::execute()
 {			
-	// Wallis filter
 	//openCVtestclass::wallis *filter = openCVtestclass::wallis(master_mat);
 	//test->wallis(img_slave);
-					
-   	//master_mat = wallis(master_mat);	
-   	//slave_mat = wallis(slave_mat);		  	
+	
+	// Wallis filter				
+   	master_mat = wallis(master_mat);	
+   	slave_mat = wallis(slave_mat);		  	
    	
 	double minVal_master, maxVal_master, minVal_slave, maxVal_slave;
 	cv::Mat master_mat_8U;
