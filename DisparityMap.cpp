@@ -47,8 +47,8 @@ cv::Mat DisparityMap::execute(cv::Mat master_mat, cv::Mat slave_mat)
 {
 	cout << "DISPARITY MAP GENERATION..." << endl;
 	// Disparity Map generation
-	int ndisparities = 16*2; //Maximum disparity minus minimum disparity 
-	int SADWindowSize = 3;   //Matched block size
+	int ndisparities = 16*2*2; //Maximum disparity minus minimum disparity 
+	int SADWindowSize = 11;   //Matched block size
 
 	cv::StereoSGBM sgbm;
 
@@ -58,13 +58,14 @@ cv::Mat DisparityMap::execute(cv::Mat master_mat, cv::Mat slave_mat)
 	int cn = master_mat.channels();
 
 	sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-	sgbm.P2 = 32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-	sgbm.minDisparity = -16; // Minimum possible disparity value
+	sgbm.P2 = 40*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
+	sgbm.minDisparity = -16*2; // Minimum possible disparity value
 	sgbm.numberOfDisparities = ndisparities;
-	sgbm.uniquenessRatio = 10;
+	sgbm.uniquenessRatio = 5;
 	sgbm.speckleWindowSize = 100;
-	sgbm.speckleRange = 32;
+	sgbm.speckleRange = 1;
 	sgbm.disp12MaxDiff = 1; // Maximum allowed difference (in integer pixel units) in the left-right disparity check
+	//sgbm.fullDP = true;
 	
 	double minVal, maxVal;
 	cv::Mat array_disp;
@@ -72,10 +73,11 @@ cv::Mat DisparityMap::execute(cv::Mat master_mat, cv::Mat slave_mat)
 	sgbm(master_mat, slave_mat, array_disp);
 	minMaxLoc( array_disp, &minVal, &maxVal );
 	array_disp.convertTo( array_disp_8U, CV_8UC1, 255/(maxVal - minVal), -minVal*255/(maxVal - minVal));   
-    
+    cout << "min\t" << minVal << "max\t" << maxVal << endl;
 	cv::namedWindow( "SGM Disparity", CV_WINDOW_NORMAL );
 	cv::imshow( "SGM Disparity", array_disp_8U);
-
+	cv::imwrite( "SGM Disparity.tif", array_disp_8U);
+	
 	cv::waitKey(0);
 	
 	return array_disp;

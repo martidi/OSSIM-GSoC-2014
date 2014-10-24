@@ -31,6 +31,8 @@ public:
 	bool execute();
 	bool writeDisparity(double conv_factor);
 	bool computeDSM(double conv_factor, ossimElevManager* elev, ossimImageGeometry* master_geom);
+	cv::Mat wallis(cv::Mat raw_image);
+	//void addArguments(ossimArgumentParser& ap);
    
 	cv::Mat master_mat, slave_mat;
 	cv::vector<cv::KeyPoint> keypoints1, keypoints2;

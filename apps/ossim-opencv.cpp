@@ -99,7 +99,98 @@ int main(int argc,  char* argv[])
         cout << "SLAVE DIRECTORY:"  << " " << argv[2] << endl << endl;
 
         // Making fake argv master & slave
+	
+	
+	
+	
+/*	
+   string tempString;
+   ossimArgumentParser::ossimParameter stringParam(tempString);
+   ossimArgumentParser argumentParser(&argc, argv);
+   ossimInit::instance()->addOptions(argumentParser);
+   ossimInit::instance()->initialize(argumentParser);
 
+   if(traceDebug())
+   {
+      ossimNotify(ossimNotifyLevel_DEBUG) << "entered main" << std::endl;
+   }
+   
+   argumentParser.getApplicationUsage()->setApplicationName(argumentParser.getApplicationName());
+   argumentParser.getApplicationUsage()->setDescription(argumentParser.getApplicationName()+" takes a spec file as input and produces a product");
+   argumentParser.getApplicationUsage()->setCommandLineUsage(argumentParser.getApplicationName()+" [options] <spec_file>");
+   argumentParser.getApplicationUsage()->addCommandLineOption("-t or --thumbnail", "thumbnail resolution");
+   argumentParser.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+ 
+
+   if(argumentParser.read("-h") ||
+      argumentParser.read("--help")||
+      argumentParser.argc() <2)
+   {
+      argumentParser.getApplicationUsage()->write(std::cout);
+      exit(0);
+   }
+
+   ossimRefPtr<ossimIgen> igen = new ossimIgen;
+   double start=0, stop=0;
+   
+   ossimMpi::instance()->initialize(&argc, &argv);
+   start = ossimMpi::instance()->getTime();
+
+   ossimKeywordlist kwl;
+   kwl.setExpandEnvVarsFlag(true);
+   
+   while(argumentParser.read("-t", stringParam)   ||
+         argumentParser.read("--thumbnail", stringParam));
+   
+   if(ossimMpi::instance()->getRank() > 0)
+   {
+      // since this is not the master process
+      // then it will set the keyword list form the master
+      // so set this to empty
+      //
+      igen->initialize(ossimKeywordlist());
+   }
+   else if(argumentParser.argc() > 1)
+   {
+      if(kwl.addFile(argumentParser.argv()[1]))
+      {
+         if(tempString != "")
+         {
+            kwl.add("igen.thumbnail",
+                    "true",
+                    true);
+            kwl.add("igen.thumbnail_res",
+                    tempString.c_str(),
+                    true);
+         }
+         else
+         {
+            kwl.add("igen.thumbnail",
+                    "false",
+                    true);
+         }
+         kwl.add("igen.thumbnail_res",
+                 tempString.c_str(),
+                 true);
+
+         igen->initialize(kwl);
+      }
+   }
+
+*/
+
+	
+	
+	
+		if( argc < 5)
+		{
+			cout << "Usage: ossim-opencv <input_left_image> <input_right_image> <output_left_image> <output_right_image> [options]" << endl;
+			cout << "Options:" << endl;
+			cout << "--cut-bbox-ll <min_lat> <min_lon> <max_lat> <max_lon> \t Specify a bounding box with the minimum"   << endl;   
+			cout << "\t\t\t\t\t\t\tlatitude/longitude and max latitude/longitude" << endl; 
+			cout << "\t\t\t\t\t\t\tin decimal degrees." << endl; 
+			return -1;
+		}
 		argv_master[0] = "ossim-chipper";
 		argv_master[1] = "--op";
 		argv_master[2] = "ortho";
@@ -167,7 +258,7 @@ int main(int argc,  char* argv[])
 			ossimRefPtr<ossimImageData> img_slave = slave_handler->getTile(bounds_slave, 0); 
 
 			// TPs generation 
-			openCVtestclass *test = new openCVtestclass(img_master, img_slave) ; 
+			openCVtestclass *test = new openCVtestclass(img_master, img_slave) ; 					
    			test->execute();
 
 			// Conversion factor computing

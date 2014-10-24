@@ -69,7 +69,9 @@ message( STATUS "Required libs = ${requiredLibs}" )
 target_link_libraries( ossim-opencv ${requiredLibs} ossimopencv_plugin)
 
 # Install app and shared lib:
-install(TARGETS ossim-opencv
+install(TARGETS ossim-opencv 
         DESTINATION bin
         LIBRARY DESTINATION)
- 
+
+
+

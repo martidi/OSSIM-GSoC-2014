@@ -2,7 +2,7 @@
 //
 // License:  See top level LICENSE.txt file.
 //
-// File: TPgeneraotr.cpp
+// File: TPgenerator.cpp
 //
 // Author:  Martina Di Rita
 //
@@ -216,11 +216,16 @@ void TPgenerator::run()
 
 void TPgenerator::TPdraw()
 {
+	cv::Mat filt_master, filt_slave;
+	cv::Ptr<cv::CLAHE> filtro = cv::createCLAHE(3.0);
+	filtro->apply(master_mat, filt_master); 
+	filtro->apply(slave_mat, filt_slave);
+	
 	// Drawing the results
 	cv::Mat img_matches;
-	cv::drawMatches(master_mat, keypoints1, slave_mat, keypoints2,
+	cv::drawMatches(filt_master, keypoints1, filt_slave, keypoints2,
                good_matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),
-               vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+               vector<char>(), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 	
 	cv::resize(img_matches, img_matches, cv::Size(), 1.0/8.0, 1.0/8.0, cv::INTER_AREA);
 
