@@ -35,9 +35,9 @@
 
 #include <ossim/elevation/ossimElevManager.h>
 
-#include "TPgenerator.h"
+#include "ossimOpenCvTPgenerator.h"
 #include "openCVtestclass.h"
-#include "DisparityMap.h"
+#include "ossimOpenCvDisparityMapGenerator.h"
 #include "ossimTieMeasurementGenerator.h"
 
 #include "opencv2/core/core.hpp"
@@ -271,8 +271,9 @@ int main(int argc,  char* argv[])
 			double Dlon = (ur.lon - ul.lon)/2.0;
 			double Dlat = (ul.lat - ll.lat)/2.0;
         
-			double conv_factor = 0.0;
-        
+			//double conv_factor = 0.0;
+			cv::Mat conv_factor = cv::Mat::zeros(3,3, CV_64F);
+			
 			for (int i=0 ; i<3 ; i++) //LAT
 			{
 				for (int j=0 ; j<3 ; j++) //LON
@@ -297,16 +298,40 @@ int main(int argc,  char* argv[])
 					//cout << DeltaI_Master << "\t"<< DeltaJ_Master <<"\t" <<  DeltaI_Slave << "\t" << DeltaJ_Slave << "\t" 
 							//<< DeltaI_Master-DeltaI_Slave << "\t" << DeltaJ_Master - DeltaJ_Slave  <<endl;
 										
-					conv_factor += DeltaJ_Slave - DeltaJ_Master;
+					//conv_factor += DeltaJ_Slave - DeltaJ_Master;
+					conv_factor.at<double>(i,j) = DeltaJ_Slave - DeltaJ_Master;
 				}			
-			}	        
-        
-			conv_factor = conv_factor/(9.0*2000.0);
-			cout << "Conversion factor \t"<< conv_factor << endl << endl;
+			}
+	
+			cv::Scalar mean_conv_factor, stDev_conv_factor;
+			cv::meanStdDev(conv_factor, mean_conv_factor, stDev_conv_factor);
+			double stDev_conversionF = stDev_conv_factor.val[0];
+			double mean_conversionF = mean_conv_factor.val[0];	        
 			
+			//conv_factor = conv_factor/(9.0*2000.0);
+			//cout << "Conversion factor \t"<< conv_factor << endl << endl;
+			cout << "Conversion Factor from pixels to meters\t" << mean_conversionF/(2200.00-200.00) <<endl;
+			cout << "Standard deviation Conversion Factor\t" << stDev_conversionF <<endl;
+			
+/*			
+		cv::Mat parallax = cv::Mat::zeros(good_matches.size(), 1, CV_64F);
+		for(size_t i = 0; i < good_matches.size(); i++)
+		{
+			parallax.at<double>(i,0) = keypoints1[good_matches[i].queryIdx].pt.y - keypoints2[good_matches[i].trainIdx].pt.y; 	
+		}		
+		cv::Scalar mean_parallax, stDev_parallax;
+		cv::meanStdDev(parallax, mean_parallax, stDev_parallax);
+		
+		double dev_y = stDev_parallax.val[0]; 	
+		double mean_diff_y = mean_parallax.val[0]; 
+	
+		cout << "dev_y = " << dev_y << endl
+	         << "mean_diff_y = " << mean_diff_y << endl;			
+*/				
+						
 			// From Disparity to DSM
 			ossimImageGeometry* master_geom = master_handler->getImageGeometry().get();			
-			test->computeDSM(conv_factor, elev, master_geom);
+			test->computeDSM(mean_conversionF, elev, master_geom);
 			
 			// Geocoded DSM generation
 			ossimImageHandler *handler_disp = ossimImageHandlerRegistry::instance()->open(ossimFilename("Temp_DSM.tif"));

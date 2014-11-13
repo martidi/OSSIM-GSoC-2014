@@ -21,8 +21,8 @@
 #include <ossim/imaging/ossimImageSource.h>
 
 #include "openCVtestclass.h"
-#include "TPgenerator.h"
-#include "DisparityMap.h"
+#include "ossimOpenCvTPgenerator.h"
+#include "ossimOpenCvDisparityMapGenerator.h"
 
 #include <ossim/base/ossimArgumentParser.h>
 #include <ossim/base/ossimApplicationUsage.h>
@@ -82,7 +82,7 @@ bool openCVtestclass::execute()
 	master_mat.convertTo( master_mat_8U, CV_8UC1, 255.0/(maxVal_master - minVal_master), -minVal_master*255.0/(maxVal_master - minVal_master));
 	slave_mat.convertTo( slave_mat_8U, CV_8UC1, 255.0/(maxVal_slave - minVal_slave), -minVal_slave*255.0/(maxVal_slave - minVal_slave)); 
 	
-	TPgenerator* TPfinder = new TPgenerator(master_mat_8U, slave_mat_8U);
+	ossimOpenCvTPgenerator* TPfinder = new ossimOpenCvTPgenerator(master_mat_8U, slave_mat_8U);
 	TPfinder->run();
 	
 	cv::Mat slave_mat_warp = TPfinder->warp(slave_mat);
@@ -94,7 +94,7 @@ bool openCVtestclass::execute()
 	//cv::imwrite("Master_8bit_bSGM.tif",  master_mat_8U);
 	//cv::imwrite("Slave_8bit_bSGM.tif",  slave_mat_warp);
     	
-	DisparityMap* dense_matcher = new DisparityMap();
+	ossimOpenCvDisparityMapGenerator* dense_matcher = new ossimOpenCvDisparityMapGenerator();
 	
 	//***
 	// Abilitate for computing disparity on different scales 
@@ -122,14 +122,14 @@ bool openCVtestclass::execute()
 	return true;
 }
 
-bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, ossimImageGeometry* master_geom)
+bool openCVtestclass::computeDSM(double mean_conversionF, ossimElevManager* elev, ossimImageGeometry* master_geom)
 {
 	cv::transpose(out_disp, out_disp);
 	cv::flip(out_disp, out_disp, 0);
     
 	cv::Mat out_16bit_disp = cv::Mat::zeros (out_disp.size(),CV_64F);
 	out_disp.convertTo(out_disp, CV_64F);
-	out_16bit_disp = (out_disp/16.0) / conv_factor;
+	out_16bit_disp = (out_disp/16.0) / mean_conversionF;
 	
 	cout<< "DSM GENERATION \t wait few minutes ..." << endl;
 
@@ -141,7 +141,7 @@ bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, oss
 			ossimGpt world_pt;     
 			master_geom->localToWorld(image_pt, world_pt);
 			ossim_float64 hgtAboveMSL =  elev->getHeightAboveMSL(world_pt);
-			if(out_16bit_disp.at<double>(i,j) <= -7.5/conv_factor)
+			if(out_16bit_disp.at<double>(i,j) <= -7.5/mean_conversionF)
 			{ 
 				out_16bit_disp.at<double>(i,j) = 0.0;
 			}

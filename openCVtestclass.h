@@ -9,6 +9,8 @@
 // Description: Class provides OpenCV functions for DSM extraction
 //
 //----------------------------------------------------------------------------
+#ifndef openCVtestclass_HEADER
+#define openCVtestclass_HEADER 1
 
 #include <ossim/base/ossimObject.h>
 #include <ossim/base/ossimDpt.h>
@@ -29,8 +31,8 @@ public:
 	~openCVtestclass(){};
 	openCVtestclass(ossimRefPtr<ossimImageData> master, ossimRefPtr<ossimImageData> slave); 
 	bool execute();
-	bool writeDisparity(double conv_factor);
-	bool computeDSM(double conv_factor, ossimElevManager* elev, ossimImageGeometry* master_geom);
+	bool writeDisparity(double mean_conversionF);
+	bool computeDSM(double mean_conversionF, ossimElevManager* elev, ossimImageGeometry* master_geom);
 	cv::Mat wallis(cv::Mat raw_image);
 	//void addArguments(ossimArgumentParser& ap);
    
@@ -40,5 +42,5 @@ public:
 	cv::Mat out_disp; 
 };
 
-
+#endif /* #ifndef openCVtestclass_HEADER */
              

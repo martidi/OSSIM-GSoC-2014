@@ -2,7 +2,7 @@
 //
 // License:  See top level LICENSE.txt file.
 //
-// File: TPgenerator.cpp
+// File: ossimOpenCvTPgenerator.cpp
 //
 // Author:  Martina Di Rita
 //
@@ -19,7 +19,8 @@
 #include <ossim/elevation/ossimElevManager.h>
 #include <ossim/imaging/ossimImageData.h>
 #include <ossim/imaging/ossimImageSource.h>
-#include "TPgenerator.h"
+
+#include "ossimOpenCvTPgenerator.h"
 
 #include <opencv/highgui.h>
 #include <opencv2/core/core.hpp>
@@ -33,18 +34,18 @@
 #include <vector>
 #include <iostream>
 
-TPgenerator::TPgenerator()
+ossimOpenCvTPgenerator::ossimOpenCvTPgenerator()
 {
 
 }
 
-TPgenerator::TPgenerator(cv::Mat master, cv::Mat slave)
+ossimOpenCvTPgenerator::ossimOpenCvTPgenerator(cv::Mat master, cv::Mat slave)
 {
 	master_mat = master;
 	slave_mat = slave;
 }
 
-cv::Mat TPgenerator::estRT(std::vector<cv::Point2f> master, std::vector<cv::Point2f> slave)
+cv::Mat ossimOpenCvTPgenerator::estRT(std::vector<cv::Point2f> master, std::vector<cv::Point2f> slave)
 {
 	size_t m = master.size();
 	
@@ -199,7 +200,7 @@ cv::Mat TPgenerator::estRT(std::vector<cv::Point2f> master, std::vector<cv::Poin
 	return r;
 }
 
-void TPgenerator::run()
+void ossimOpenCvTPgenerator::run()
 {
 	cv::namedWindow( "master_img", CV_WINDOW_NORMAL );
 	cv::imshow("master_img", master_mat);
@@ -213,7 +214,7 @@ void TPgenerator::run()
 	TPdraw();
 }
 
-void TPgenerator::TPdraw()
+void ossimOpenCvTPgenerator::TPdraw()
 {
 	cv::Mat filt_master, filt_slave;
 	cv::Ptr<cv::CLAHE> filtro = cv::createCLAHE(3.0);
@@ -234,7 +235,7 @@ void TPgenerator::TPdraw()
 	cv::waitKey(0);
 }
 
-void TPgenerator::TPgen()
+void ossimOpenCvTPgenerator::TPgen()
 {
    	// Computing detector
 	cv::OrbFeatureDetector detector(10000);
@@ -335,8 +336,8 @@ void TPgenerator::TPgen()
 		num_iter ++;
 		cout << "Iteration n = " << num_iter << endl;
 		control = 0;
-
-		 
+ 
+ 
 		cv::Mat parallax = cv::Mat::zeros(good_matches.size(), 1, CV_64F);
 		for(size_t i = 0; i < good_matches.size(); i++)
 		{
@@ -374,7 +375,7 @@ void TPgenerator::TPgen()
 	cout << endl << "Good points found after the 3 sigma test = " << (double)good_matches.size() <<endl << endl; 
 }
 
-cv::Mat TPgenerator::warp(cv::Mat slave_16bit)
+cv::Mat ossimOpenCvTPgenerator::warp(cv::Mat slave_16bit)
 {
 	std::vector<cv::Point2f> aff_match1, aff_match2;
 	// Get the keypoints from the good_matches

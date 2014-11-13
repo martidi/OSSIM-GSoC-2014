@@ -2,7 +2,7 @@
 //
 // License:  See top level LICENSE.txt file.
 //
-// File: DisparityMap.cpp
+// File: ossimOpenCvDisparityMapGenerator.cpp
 //
 // Author:  Martina Di Rita
 //
@@ -20,7 +20,7 @@
 #include <ossim/imaging/ossimImageData.h>
 #include <ossim/imaging/ossimImageSource.h>
 
-#include "DisparityMap.h"
+#include "ossimOpenCvDisparityMapGenerator.h"
 
 #include <opencv/highgui.h>
 #include <opencv2/core/core.hpp>
@@ -35,12 +35,12 @@
 #include <vector>
 #include <iostream>
 
-DisparityMap::DisparityMap()
+ossimOpenCvDisparityMapGenerator::ossimOpenCvDisparityMapGenerator()
 {
 	
 }
 
-cv::Mat DisparityMap::execute(cv::Mat master_mat, cv::Mat slave_mat)
+cv::Mat ossimOpenCvDisparityMapGenerator::execute(cv::Mat master_mat, cv::Mat slave_mat)
 {
 	cout << "DISPARITY MAP GENERATION..." << endl;
 	// Disparity Map generation

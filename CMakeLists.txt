@@ -24,6 +24,10 @@ MESSAGE( STATUS "OPENCV_INCLUDE = ${OPENCV_INCLUDE_DIR}" )
 FILE(GLOB_RECURSE OSSIMPLUGIN_SRCS *.cpp)
 FILE(GLOB_RECURSE OSSIMPLUGIN_HEADERS *.h)
 
+# Add the apps dir:
+add_subdirectory(apps)
+
+
 ####
 # OSSIMPLUGINSMAKINGDLL controls dll linkage on windows.  
 # Adding this sets OSSIM_PLUGINS_DLL #define TO "__declspec(dllexport)".
@@ -38,16 +42,11 @@ else(OSSIM_INSTALL_PLUGINS_WITH_VERSION)
 endif(OSSIM_INSTALL_PLUGINS_WITH_VERSION)
 
 OSSIM_LINK_LIBRARY(${LIB_NAME}
-                   COMPONENT_NAME ossim TYPE "${OSSIM_PLUGIN_LINK_TYPE}"
-		   LIBRARIES ${OSSIM_LIBRARIES} ${requiredLib} 
-		   HEADERS "${OSSIMPLUGIN_HEADERS}"
-		   SOURCE_FILES "${OSSIMPLUGIN_SRCS}"
-                   INSTALL_LIB)
-
-
-# Add the apps dir:
-add_subdirectory(apps)
-
+					COMPONENT_NAME ossim TYPE "${OSSIM_PLUGIN_LINK_TYPE}"
+					LIBRARIES ${OSSIM_LIBRARIES} ${requiredLib} 
+					HEADERS "${OSSIMPLUGIN_HEADERS}"
+					SOURCE_FILES "${OSSIMPLUGIN_SRCS}"
+					INSTALL_LIB)
 
 # ---
 # ossim-opencv app:

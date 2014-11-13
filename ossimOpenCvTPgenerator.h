@@ -2,33 +2,23 @@
 //
 // License:  See top level LICENSE.txt file.
 //
-// File: TPgenerator.h
+// File: ossimOpenCvTPgenerator.h
 //
 // Author:  Martina Di Rita
 //
 // Description: Class provides a TPs generator
 //
 //----------------------------------------------------------------------------
-
-#include "ossim/imaging/ossimImageHandler.h"
-#include "ossim/imaging/ossimImageHandlerRegistry.h"
-#include <ossim/base/ossimObject.h>
-#include <ossim/base/ossimDpt.h>
-#include <ossim/base/ossimString.h>
-#include <ossim/base/ossimTieMeasurementGeneratorInterface.h>
-#include "ossimIvtGeomXform.h"
+#ifndef ossimOpenCvTPgenerator_HEADER
+#define ossimOpenCvTPgenerator_HEADER 1
 
 #include <opencv/cv.h>
 
-#include <ctime>
-#include <vector>
-#include <iostream>
-
-class TPgenerator
+class ossimOpenCvTPgenerator
 {
 public:
-	TPgenerator();
-	TPgenerator(cv::Mat master, cv::Mat slave); 
+	ossimOpenCvTPgenerator();
+	ossimOpenCvTPgenerator(cv::Mat master, cv::Mat slave); 
 	void run();
 	void TPgen();
 	void TPdraw();
@@ -41,3 +31,4 @@ public:
 	double slave_x, slave_y, master_x, master_y;
 };
 
+#endif /* #ifndef ossimOpenCvTPgenerator_HEADER */
