@@ -19,11 +19,7 @@
 #include <ossim/elevation/ossimElevManager.h>
 #include <ossim/imaging/ossimImageData.h>
 #include <ossim/imaging/ossimImageSource.h>
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/median.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
+
 #include "DisparityMap.h"
 
 #include <opencv/highgui.h>
@@ -35,6 +31,7 @@
 // #include <opencv2/nonfree/nonfree.hpp>
 // #include <opencv2/nonfree/features2d.hpp>
 // Note: These are purposely commented out to indicate non-use.
+
 #include <vector>
 #include <iostream>
 
@@ -47,7 +44,7 @@ cv::Mat DisparityMap::execute(cv::Mat master_mat, cv::Mat slave_mat)
 {
 	cout << "DISPARITY MAP GENERATION..." << endl;
 	// Disparity Map generation
-	int ndisparities = 16*2*2; //Maximum disparity minus minimum disparity 
+	int ndisparities = 16; //Maximum disparity minus minimum disparity //con fattore di conversione 1 metti 16*2*2
 	int SADWindowSize = 11;   //Matched block size
 
 	cv::StereoSGBM sgbm;
@@ -59,7 +56,7 @@ cv::Mat DisparityMap::execute(cv::Mat master_mat, cv::Mat slave_mat)
 
 	sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
 	sgbm.P2 = 40*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-	sgbm.minDisparity = -16*2; // Minimum possible disparity value
+	sgbm.minDisparity = -8; // Minimum possible disparity value  //con fattore di conversione 1 metti -16*2
 	sgbm.numberOfDisparities = ndisparities;
 	sgbm.uniquenessRatio = 5;
 	sgbm.speckleWindowSize = 100;

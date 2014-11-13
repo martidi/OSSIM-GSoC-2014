@@ -92,16 +92,13 @@ int main(int argc,  char* argv[])
 	ossimInit::instance()->initialize(ap);
 	try
 	{ 
-        char* argv_master[10];
-        char* argv_slave[10];
+        char* argv_master[12];
+        char* argv_slave[12];
         
         cout << endl << "MASTER DIRECTORY:" << " " << argv[1] << endl;
         cout << "SLAVE DIRECTORY:"  << " " << argv[2] << endl << endl;
 
-        // Making fake argv master & slave
-	
-	
-	
+        // Making fake argv master & slave	
 	
 /*	
    string tempString;
@@ -177,14 +174,11 @@ int main(int argc,  char* argv[])
       }
    }
 
-*/
-
+*/	
 	
-	
-	
-		if( argc < 5)
+		if( argc < 6)
 		{
-			cout << "Usage: ossim-opencv <input_left_image> <input_right_image> <output_left_image> <output_right_image> [options]" << endl;
+			cout << "Usage: ossim-opencv <input_left_image> <input_right_image> <output_ortho_left_image> <output_ortho_right_image> <output_DSM> [options]" << endl;
 			cout << "Options:" << endl;
 			cout << "--cut-bbox-ll <min_lat> <min_lon> <max_lat> <max_lon> \t Specify a bounding box with the minimum"   << endl;   
 			cout << "\t\t\t\t\t\t\tlatitude/longitude and max latitude/longitude" << endl; 
@@ -206,27 +200,33 @@ int main(int argc,  char* argv[])
 		int originalArgCount = 5;
 		int originalArgCount2 = 5;
 
-		if(argc == 10) 
+		if(argc == 13) 
 		{
-			argv_master[5] = argv[5];
+			argv_master[5] = argv[5];			
 			argv_master[6] = argv[6];
 			argv_master[7] = argv[7];
 			argv_master[8] = argv[8];
 			argv_master[9] = argv[9];
+			argv_master[10] = argv[10];
+			argv_master[11] = argv[11];
+			argv_master[12] = argv[12];
 
 			argv_slave[5] = argv[5];
 			argv_slave[6] = argv[6];
 			argv_slave[7] = argv[7];
 			argv_slave[8] = argv[8];
 			argv_slave[9] = argv[9];
+			argv_slave[10] = argv[10];
+			argv_slave[11] = argv[11];	
+			argv_slave[12] = argv[12];									
 
-			originalArgCount = 10;
-			originalArgCount2 = 10;
+			originalArgCount = 13;
+			originalArgCount2 = 13;
 
-			cout << "TILE CUT:" << " " << "Lat_min" << " " << argv[6] 
-        						<< " " << "Lon_min" << " " << argv[7]
-        						<< " " << "Lat_max" << " " << argv[8]
-        						<< " " << "Lon_max" << " " << argv[9] << endl << endl;
+			cout << "TILE CUT:" << " " << "Lat_min" << " " << argv[7] 
+        						<< " " << "Lon_min" << " " << argv[8]
+        						<< " " << "Lat_max" << " " << argv[9]
+        						<< " " << "Lon_max" << " " << argv[10] << endl << endl;
 		}	
 
 		// Orthorectification
@@ -261,7 +261,7 @@ int main(int argc,  char* argv[])
 			openCVtestclass *test = new openCVtestclass(img_master, img_slave) ; 					
    			test->execute();
 
-			// Conversion factor computing
+			// Conversion factor (from pixels to meters) computation
 			ossimRefPtr<ossimImageGeometry> raw_master_geom = raw_master_handler->getImageGeometry();    
 			ossimRefPtr<ossimImageGeometry> raw_slave_geom = raw_slave_handler->getImageGeometry(); 
 			
@@ -278,7 +278,7 @@ int main(int argc,  char* argv[])
 				for (int j=0 ; j<3 ; j++) //LON
 				{
 					ossimGpt punto_terra(ur.lat-i*Dlat,ul.lon+j*Dlon,200.00);
-					ossimGpt punto_terra_up(ur.lat-i*Dlat,ul.lon+j*Dlon,300.00);	
+					ossimGpt punto_terra_up(ur.lat-i*Dlat,ul.lon+j*Dlon,2200.00);	
 					ossimDpt punto_img(0.,0.);
 					ossimDpt punto_img_up(0.,0.);
 				
@@ -301,7 +301,7 @@ int main(int argc,  char* argv[])
 				}			
 			}	        
         
-			conv_factor = conv_factor/(9.0*100.0);
+			conv_factor = conv_factor/(9.0*2000.0);
 			cout << "Conversion factor \t"<< conv_factor << endl << endl;
 			
 			// From Disparity to DSM
@@ -311,7 +311,7 @@ int main(int argc,  char* argv[])
 			// Geocoded DSM generation
 			ossimImageHandler *handler_disp = ossimImageHandlerRegistry::instance()->open(ossimFilename("Temp_DSM.tif"));
 			handler_disp->setImageGeometry(master_geom);       
-			ossimImageFileWriter* writer = ossimImageWriterFactoryRegistry::instance()->createWriter(ossimFilename("Geocoded_DSM.tif"));
+			ossimImageFileWriter* writer = ossimImageWriterFactoryRegistry::instance()->createWriter(ossimFilename(argv[5]));
 			writer->connectMyInputTo(0, handler_disp);
 			writer->execute();
             

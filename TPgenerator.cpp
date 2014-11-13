@@ -19,11 +19,6 @@
 #include <ossim/elevation/ossimElevManager.h>
 #include <ossim/imaging/ossimImageData.h>
 #include <ossim/imaging/ossimImageSource.h>
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/median.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
 #include "TPgenerator.h"
 
 #include <opencv/highgui.h>
@@ -59,25 +54,29 @@ cv::Mat TPgenerator::estRT(std::vector<cv::Point2f> master, std::vector<cv::Poin
 	}
     
 	// Computing barycentric coordinates
-	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::variance> > acc_x_master;
-	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::variance> > acc_y_master;
-	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::variance> > acc_x_slave;
-	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::variance > > acc_y_slave;
 	
+	cv::Scalar mean_master_x , mean_master_y, mean_slave_x, mean_slave_y;
+	cv::Scalar stDev_master_x, stDev_master_y, stDev_slave_x, stDev_slave_y;
+	
+	cv::Mat components_matrix = cv::Mat::zeros(m,4, CV_64F);
 	for(size_t i = 0; i < m; i++)
 	{
-		acc_x_master(master[i].x);
-		acc_y_master(master[i].y);
-		acc_x_slave(slave[i].x);
-		acc_y_slave(slave[i].y);
-		//parallax(master[i].y-slave[i].y);
+		components_matrix.at<double>(i,0) = master[i].x;
+		components_matrix.at<double>(i,1) = master[i].y;
+		components_matrix.at<double>(i,2) = slave[i].x;
+		components_matrix.at<double>(i,3) = slave[i].y;	
 	}
-
-	master_x = boost::accumulators::mean(acc_x_master);
-	master_y = boost::accumulators::mean(acc_y_master);
-	slave_x = boost::accumulators::mean(acc_x_slave);
-	slave_y = boost::accumulators::mean(acc_y_slave);
-
+	cv::meanStdDev(components_matrix.col(0), mean_master_x, stDev_master_x);				
+	cv::meanStdDev(components_matrix.col(1), mean_master_y, stDev_master_y); 
+	cv::meanStdDev(components_matrix.col(2), mean_slave_x, stDev_slave_x); 
+	cv::meanStdDev(components_matrix.col(3), mean_slave_y, stDev_slave_y); 
+		
+	master_x = mean_master_x.val[0];
+	master_y = mean_master_y.val[0];
+	slave_x = mean_slave_x.val[0];
+	slave_y	= mean_slave_y.val[0];		
+	
+	
 	cout << "mean_x_master = " << master_x << endl
 		 << "mean_y_master = " << master_y << endl
 		 << "mean_x_slave = "  << slave_x  << endl
@@ -300,8 +299,8 @@ void TPgenerator::TPgen()
 	} 
 	
 	// Error computation
-	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::median, boost::accumulators::tag::variance> > acc_x;
-	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::median, boost::accumulators::tag::variance> > acc_y;
+	//boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::median, boost::accumulators::tag::variance> > acc_x;
+	//boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::median, boost::accumulators::tag::variance> > acc_y;
 	
 	for( int i = 0; i < descriptors1.rows; i++ )
 	{
@@ -315,8 +314,8 @@ void TPgenerator::TPgen()
 			{
 				good_matches.push_back(matches[i]);
 
-				acc_x(px);
-				acc_y(py);
+				//acc_x(px);
+				//acc_y(py);
 		        
 				//cout << i << " " << px << " " << " " << py << " "<<endl;	
 			}
@@ -336,19 +335,22 @@ void TPgenerator::TPgen()
 		num_iter ++;
 		cout << "Iteration n = " << num_iter << endl;
 		control = 0;
-		
-		boost::accumulators::accumulator_set < double, boost::accumulators::stats < boost::accumulators::tag::mean, boost::accumulators::tag::variance > > parallax;
-		
+
+		 
+		cv::Mat parallax = cv::Mat::zeros(good_matches.size(), 1, CV_64F);
 		for(size_t i = 0; i < good_matches.size(); i++)
 		{
-			parallax(keypoints1[good_matches[i].queryIdx].pt.y - keypoints2[good_matches[i].trainIdx].pt.y);
-		}
-    
-		double dev_y = sqrt(boost::accumulators::variance(parallax)); 	
-		double mean_diff_y = boost::accumulators::mean(parallax); 	
-			 
+			parallax.at<double>(i,0) = keypoints1[good_matches[i].queryIdx].pt.y - keypoints2[good_matches[i].trainIdx].pt.y; 	
+		}		
+		cv::Scalar mean_parallax, stDev_parallax;
+		cv::meanStdDev(parallax, mean_parallax, stDev_parallax);
+		
+		double dev_y = stDev_parallax.val[0]; 	
+		double mean_diff_y = mean_parallax.val[0]; 
+		
 		cout << "dev_y = " << dev_y << endl
 	         << "mean_diff_y = " << mean_diff_y << endl;
+    		
     		
 		vector<cv::DMatch > good_matches_corr;
 		

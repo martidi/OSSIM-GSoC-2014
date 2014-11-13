@@ -19,11 +19,7 @@
 #include <ossim/elevation/ossimElevManager.h>
 #include <ossim/imaging/ossimImageData.h>
 #include <ossim/imaging/ossimImageSource.h>
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/median.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
+
 #include "openCVtestclass.h"
 #include "TPgenerator.h"
 #include "DisparityMap.h"
@@ -56,7 +52,7 @@ openCVtestclass::openCVtestclass(ossimRefPtr<ossimImageData> master, ossimRefPtr
 	
 	memcpy(master_mat.ptr(), (void*) master->getUshortBuf(), 2*master->getWidth()*master->getHeight());
 	memcpy(slave_mat.ptr(), (void*) slave->getUshortBuf(), 2*slave->getWidth()*slave->getHeight());
-	
+
 	cout << "OSSIM->OpenCV image conversion done" << endl;
 	
 	// Rotation for along-track images
@@ -74,8 +70,8 @@ bool openCVtestclass::execute()
 	//test->wallis(img_slave);
 	
 	// Wallis filter				
-   	master_mat = wallis(master_mat);	
-   	slave_mat = wallis(slave_mat);		  	
+   	//master_mat = wallis(master_mat);	
+   	//slave_mat = wallis(slave_mat);		  	
    	
 	double minVal_master, maxVal_master, minVal_slave, maxVal_slave;
 	cv::Mat master_mat_8U;
@@ -133,7 +129,7 @@ bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, oss
     
 	cv::Mat out_16bit_disp = cv::Mat::zeros (out_disp.size(),CV_64F);
 	out_disp.convertTo(out_disp, CV_64F);
-	out_16bit_disp = (out_disp/16.0) * conv_factor;
+	out_16bit_disp = (out_disp/16.0) / conv_factor;
 	
 	cout<< "DSM GENERATION \t wait few minutes ..." << endl;
 
@@ -145,25 +141,51 @@ bool openCVtestclass::computeDSM(double conv_factor, ossimElevManager* elev, oss
 			ossimGpt world_pt;     
 			master_geom->localToWorld(image_pt, world_pt);
 			ossim_float64 hgtAboveMSL =  elev->getHeightAboveMSL(world_pt);
-			if(out_16bit_disp.at<double>(i,j) <= -16.5*conv_factor)
+			if(out_16bit_disp.at<double>(i,j) <= -7.5/conv_factor)
 			{ 
 				out_16bit_disp.at<double>(i,j) = 0.0;
 			}
 			out_16bit_disp.at<double>(i,j) += hgtAboveMSL;
 		}
 	}
- 
+/*
+	// Conversion from OpenCV to OSSIM images   
+	
+	//ossimRefPtr<ossimImageData> disp_ossim = disp_ossim_handler->getSize();
+	cout << "OpenCV->OSSIM image conversion done_1" << endl;	
+	
+	//ossimImageHandler* disp_ossim_handler = ossimImageHandlerRegistry::instance() ->open(ossimFilename("../../../../img_data/ZY_3/ZY3_NAD_E11.5_N46.5_20120909_L1A0000657936/ZY3_TLC_E11_5_N46_5_20120909_L1A0000657936_NAD.TIF"));
+	//ossimIrect bounds_disp = disp_ossim_handler->getBoundingRect(0); 			
+	ossimRefPtr<ossimImageData> disp_ossim = new ossimImageData(NULL, OSSIM_DOUBLE, 1, out_16bit_disp.cols, out_16bit_disp.rows );
+	//disp_ossim->setWidthHeight(out_16bit_disp.cols,out_16bit_disp.rows);    
+		
+	//ossimImageHandler* master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[3]));  	
+	//ossimIrect bounds_master = master_handler->getBoundingRect(0); 		
+	//ossimRefPtr<ossimImageData> img_master = master_handler->getTile(bounds_master, 0);     
+	//ossimRefPtr<ossimImageGeometry> raw_slave_geom = raw_slave_handler->getImageGeometry(); 	
+	cout << "OpenCV->OSSIM image conversion done_2" << endl;		
+	
+	//master_mat.create(cv::Size(master->getWidth(), master->getHeight()), CV_16UC1);
+	//slave_mat.create(cv::Size(slave->getWidth(), slave->getHeight()), CV_16UC1);
+
+	memcpy((void*)disp_ossim->getDoubleBuf(), (void*)out_16bit_disp.ptr(), out_16bit_disp.cols*out_16bit_disp.rows);
+	//memcpy(slave_mat.ptr(), (void*) slave->getUshortBuf(), 2*slave->getWidth()*slave->getHeight());
+	
+	//disp_ossim = disp_ossim->getDoubleBuf();
+	
+	cout << "OpenCV->OSSIM image conversion done_3" << endl;
+*/ 	
 	cv::Mat intDSM; 
 	// Conversion from float to integer to write and show
 	out_16bit_disp.convertTo(intDSM, CV_16U);
- 
+	
 	cv::imwrite("Temp_DSM.tif", intDSM);
-	
+		
 	double minVal, maxVal;
-	minMaxLoc( intDSM, &minVal, &maxVal );
-	intDSM.convertTo( intDSM, CV_8UC1, 255/(maxVal - minVal), -minVal*255/(maxVal - minVal));   
+	minMaxLoc(intDSM, &minVal, &maxVal);
+	intDSM.convertTo(intDSM, CV_8UC1, 255/(maxVal - minVal), -minVal*255/(maxVal - minVal));   
 	
-	cv::namedWindow("Temp_DSM", CV_WINDOW_NORMAL );
+	cv::namedWindow("Temp_DSM", CV_WINDOW_NORMAL);
 	cv::imshow("Temp_DSM", intDSM);
 	cv::waitKey(0);	
 	
@@ -332,20 +354,7 @@ cv::Mat openCVtestclass::wallis(cv::Mat image)
 	return Filtered_image;				
 }
 
-/*static void usage()
-{
-	if( argc < 5)
-	{
-	cout << "Usage: ossim-opencv <input_left_image> <input_right_image> <output_left_image> <output_right_image> [options]" << endl;
-	cout << "Options:" << endl;
-	cout << "--cut-bbox-ll <min_lat> <min_lon> <max_lat> <max_lon> \t \t \t \t Specify a bounding box with the minimum   << endl;   
-	\t\t\t\t\t\t\tlatitude/longitude and max latitude/longitude
-	\t\t\t\t\t\t\tin decimal degrees."     
-	return -1;     
-	}          
-}
 
-*/
 /*void openCVtestclass::addArguments(ossimArgumentParser& ap)
 {
    ossimString usageString = ap.getApplicationName();
