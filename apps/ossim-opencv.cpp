@@ -45,6 +45,9 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv/cv.h>
 
+#include <ossim/base/ossimKeywordlist.h>
+#include <ossim/base/ossimKeywordNames.h>
+
 #include <iostream>
 #include <sstream>
 #include <cstdlib> /* for exit */
@@ -54,25 +57,29 @@
 
 using namespace std;
 
-bool ortho (ossimArgumentParser argPars)
+static const std::string CUT_MAX_LAT_KW          = "cut_max_lat";
+static const std::string CUT_MAX_LON_KW          = "cut_max_lon";
+static const std::string CUT_MIN_LAT_KW          = "cut_min_lat";
+static const std::string CUT_MIN_LON_KW          = "cut_min_lon";
+static const std::string METERS_KW               = "meters";
+static const std::string OP_KW                   = "operation";
+static const std::string RESAMPLER_FILTER_KW     = "resampler_filter";
+
+bool ortho (ossimKeywordlist kwl)
 {
 	// Make the generator
 	ossimRefPtr<ossimChipperUtil> chipper = new ossimChipperUtil;
+	chipper->initialize(kwl);
 
 	try
 	{      
-		bool continue_after_init = chipper->initialize(argPars);
-		if (continue_after_init)
-		{      
-			// ossimChipperUtil::execute can throw an exception
-			chipper->execute();
-            
-			ossimNotify(ossimNotifyLevel_NOTICE)
-			<< "elapsed time in seconds: "
-			<< std::setiosflags(ios::fixed)
-			<< std::setprecision(3)
-			<< ossimTimer::instance()->time_s() << endl << endl;
-		}
+		// ossimChipperUtil::execute can throw an exception
+		chipper->execute();
+		ossimNotify(ossimNotifyLevel_NOTICE)
+		<< "elapsed time in seconds: "
+		<< std::setiosflags(ios::fixed)
+		<< std::setprecision(3)
+		<< ossimTimer::instance()->time_s() << endl << endl;
 	}
 	catch (const ossimException& e)
 	{
@@ -92,13 +99,89 @@ int main(int argc,  char* argv[])
 	ossimInit::instance()->initialize(ap);
 	try
 	{ 
-        char* argv_master[12];
-        char* argv_slave[12];
+		// PARSER *******************************
+		
+		cout << "arg number " << ap.argc() << endl;
+				
+		ossimKeywordlist master_key;
+		ossimKeywordlist slave_key;
+		
+		//Default keyword for orthorectification
+		master_key.addPair(OP_KW, "ortho");
+		slave_key.addPair( OP_KW, "ortho");
+		
+		master_key.addPair(RESAMPLER_FILTER_KW, "bilinear");
+		slave_key.addPair( RESAMPLER_FILTER_KW, "bilinear");
+		
+		// Parsing
+		std::string tempString1,tempString2,tempString3,tempString4;
+		ossimArgumentParser::ossimParameter stringParam1(tempString1);
+		ossimArgumentParser::ossimParameter stringParam2(tempString2);
+		ossimArgumentParser::ossimParameter stringParam3(tempString3);
+		ossimArgumentParser::ossimParameter stringParam4(tempString4);
+    
+		if(ap.read("--meters", stringParam1) )
+		{
+			master_key.addPair(METERS_KW, tempString1 );
+			slave_key.addPair( METERS_KW, tempString1 );
+		}
+		
+		cout << "Orthoimages resolution = " << tempString1 <<" meters"<< endl << endl;
         
-        cout << endl << "MASTER DIRECTORY:" << " " << argv[1] << endl;
-        cout << "SLAVE DIRECTORY:"  << " " << argv[2] << endl << endl;
-
-        // Making fake argv master & slave	
+		if( ap.read("--cut-bbox-ll", stringParam1, stringParam2, stringParam3, stringParam4) )
+		{
+			master_key.addPair( CUT_MIN_LAT_KW, tempString1 );
+			master_key.addPair( CUT_MIN_LON_KW, tempString2 );
+			master_key.addPair( CUT_MAX_LAT_KW, tempString3 );
+			master_key.addPair( CUT_MAX_LON_KW, tempString4 );
+			
+			slave_key.addPair( CUT_MIN_LAT_KW, tempString1 );
+			slave_key.addPair( CUT_MIN_LON_KW, tempString2 );
+			slave_key.addPair( CUT_MAX_LAT_KW, tempString3 );
+			slave_key.addPair( CUT_MAX_LON_KW, tempString4 );
+		}
+     						     								
+		cout << "Tile extent:" << "\tLat_min = "<< tempString1 << endl   
+								<<"\t\tLon_min = " << tempString2 << endl
+								<<"\t\tLat_max = " << tempString3 << endl
+								<<"\t\tLon_max = " << tempString4 << endl;
+		// End of arg parsing
+		ap.reportRemainingOptionsAsUnrecognized();
+		if (ap.errors())
+		{
+			ap.writeErrorMessages(ossimNotify(ossimNotifyLevel_NOTICE));
+			std::string errMsg = "Unknown option...";
+			throw ossimException(errMsg);
+		}
+		
+		ossimString  key	= "";
+		
+		if(ap.argc() >= 6) //ap.argv[0] is the application name
+		{
+			master_key.add( ossimKeywordNames::OUTPUT_FILE_KW, ap[3]);		
+			slave_key.add( ossimKeywordNames::OUTPUT_FILE_KW, ap[4]);
+			
+			
+			master_key.addPair("image1.file", ap[1]);
+			slave_key.addPair("image1.file", ap[2]);
+		}
+		else 
+		{
+			ap.writeErrorMessages(ossimNotify(ossimNotifyLevel_NOTICE));
+			std::string errMsg = "Few arguments...";
+			cout << endl << "Usage: ossim-opencv <input_left_image> <input_right_image> <output_ortho_left_image> <output_ortho_right_image> <output_DSM> [options]" << endl;
+			cout << "Options:" << endl;
+			cout << "--cut-bbox-ll <min_lat> <min_lon> <max_lat> <max_lon> \t Specify a bounding box with the minimum"   << endl;   
+			cout << "\t\t\t\t\t\t\tlatitude/longitude and max latitude/longitude" << endl; 
+			cout << "\t\t\t\t\t\t\tin decimal degrees." << endl; 
+			cout << "--meters <meters> \t\t\t\t\t Specify a size (in meters) for a resampling"   << endl<< endl; 
+			throw ossimException(errMsg);
+		}
+		
+		//END PARSER****************************
+	        
+        cout << endl << "MASTER DIRECTORY:" << " " << ap[1] << endl;
+        cout << "SLAVE DIRECTORY:"  << " " << ap[2] << endl << endl;	
 	
 /*	
    string tempString;
@@ -174,79 +257,24 @@ int main(int argc,  char* argv[])
       }
    }
 
-*/	
-	
-		if( argc < 6)
-		{
-			cout << "Usage: ossim-opencv <input_left_image> <input_right_image> <output_ortho_left_image> <output_ortho_right_image> <output_DSM> [options]" << endl;
-			cout << "Options:" << endl;
-			cout << "--cut-bbox-ll <min_lat> <min_lon> <max_lat> <max_lon> \t Specify a bounding box with the minimum"   << endl;   
-			cout << "\t\t\t\t\t\t\tlatitude/longitude and max latitude/longitude" << endl; 
-			cout << "\t\t\t\t\t\t\tin decimal degrees." << endl; 
-			return -1;
-		}
-		argv_master[0] = "ossim-chipper";
-		argv_master[1] = "--op";
-		argv_master[2] = "ortho";
-		argv_master[3] = argv[1];
-		argv_master[4] = argv[3];
-
-		argv_slave[0] =  "ossim-chipper";
-		argv_slave[1] =  "--op";
-		argv_slave[2] =  "ortho";
-		argv_slave[3] = argv[2];
-		argv_slave[4] = argv[4];
-
-		int originalArgCount = 5;
-		int originalArgCount2 = 5;
-
-		if(argc == 13) 
-		{
-			argv_master[5] = argv[5];			
-			argv_master[6] = argv[6];
-			argv_master[7] = argv[7];
-			argv_master[8] = argv[8];
-			argv_master[9] = argv[9];
-			argv_master[10] = argv[10];
-			argv_master[11] = argv[11];
-			argv_master[12] = argv[12];
-
-			argv_slave[5] = argv[5];
-			argv_slave[6] = argv[6];
-			argv_slave[7] = argv[7];
-			argv_slave[8] = argv[8];
-			argv_slave[9] = argv[9];
-			argv_slave[10] = argv[10];
-			argv_slave[11] = argv[11];	
-			argv_slave[12] = argv[12];									
-
-			originalArgCount = 13;
-			originalArgCount2 = 13;
-
-			cout << "TILE CUT:" << " " << "Lat_min" << " " << argv[7] 
-        						<< " " << "Lon_min" << " " << argv[8]
-        						<< " " << "Lat_max" << " " << argv[9]
-        						<< " " << "Lon_max" << " " << argv[10] << endl << endl;
-		}	
-
-		// Orthorectification
-		cout << "Start master orthorectification" << endl;
-		ossimArgumentParser ap_master(&originalArgCount, argv_master);
-		ortho(ap_master); 
+*/		
+		
+	    cout << "Start master orthorectification" << endl;
+		ortho(master_key); 
 	
 		cout << "Start slave orthorectification" << endl;
-		ossimArgumentParser ap_slave(&originalArgCount2, argv_slave);
-		ortho(ap_slave);
+		ortho(slave_key);
+		
 		
 		// Elevation manager instance
 		ossimElevManager* elev = ossimElevManager::instance();		
   
 		// ImageHandlers & ImageGeometry instance
-		ossimImageHandler* master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[3]));             
-		ossimImageHandler* slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[4]));
+		ossimImageHandler* master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(ap[3]));             
+		ossimImageHandler* slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(ap[4]));
   
-		ossimImageHandler* raw_master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[1]));
-		ossimImageHandler* raw_slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(argv[2]));
+		ossimImageHandler* raw_master_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(ap[1]));
+		ossimImageHandler* raw_slave_handler = ossimImageHandlerRegistry::instance()->open(ossimFilename(ap[2]));
                       
     				
 		if(master_handler && slave_handler && raw_master_handler && raw_slave_handler) // enter if exist both master and slave  
@@ -271,7 +299,6 @@ int main(int argc,  char* argv[])
 			double Dlon = (ur.lon - ul.lon)/2.0;
 			double Dlat = (ul.lat - ll.lat)/2.0;
         
-			//double conv_factor = 0.0;
 			cv::Mat conv_factor = cv::Mat::zeros(3,3, CV_64F);
 			
 			for (int i=0 ; i<3 ; i++) //LAT
@@ -295,24 +322,36 @@ int main(int argc,  char* argv[])
 					double DeltaI_Slave = punto_img_up.x - punto_img.x;
 					double DeltaJ_Slave = punto_img_up.y - punto_img.y;
 					
-					//cout << DeltaI_Master << "\t"<< DeltaJ_Master <<"\t" <<  DeltaI_Slave << "\t" << DeltaJ_Slave << "\t" 
-							//<< DeltaI_Master-DeltaI_Slave << "\t" << DeltaJ_Master - DeltaJ_Slave  <<endl;
-										
-					//conv_factor += DeltaJ_Slave - DeltaJ_Master;
 					conv_factor.at<double>(i,j) = DeltaJ_Slave - DeltaJ_Master;
 				}			
 			}
 	
 			cv::Scalar mean_conv_factor, stDev_conv_factor;
 			cv::meanStdDev(conv_factor, mean_conv_factor, stDev_conv_factor);
+
 			double stDev_conversionF = stDev_conv_factor.val[0];
 			double mean_conversionF = mean_conv_factor.val[0];	        
 			
-			//conv_factor = conv_factor/(9.0*2000.0);
-			//cout << "Conversion factor \t"<< conv_factor << endl << endl;
 			cout << "Conversion Factor from pixels to meters\t" << mean_conversionF/(2200.00-200.00) <<endl;
 			cout << "Standard deviation Conversion Factor\t" << stDev_conversionF <<endl;
 			
+			
+			char * prova = ap[4];			
+			string log(prova);	
+			log.erase(log.end()-4, log.end()-0 );
+			log = log + "_logfile.txt";			
+			
+			// Creating and writing the log file
+			ofstream myfile;
+			myfile.open (log.c_str());
+			myfile << "Master orthorectification parameters" <<endl;
+			myfile << master_key << endl;
+			myfile << "Slave orthorectification parameters" <<endl;
+			myfile << slave_key << endl;
+			myfile <<"Conversion Factor from pixels to meters\t" << mean_conversionF/(2200.00-200.00) <<endl;
+			myfile <<"Standard deviation Conversion Factor\t" << stDev_conversionF <<endl; 
+			myfile.close();			
+						
 /*			
 		cv::Mat parallax = cv::Mat::zeros(good_matches.size(), 1, CV_64F);
 		for(size_t i = 0; i < good_matches.size(); i++)
@@ -328,22 +367,22 @@ int main(int argc,  char* argv[])
 		cout << "dev_y = " << dev_y << endl
 	         << "mean_diff_y = " << mean_diff_y << endl;			
 */				
-						
+				
 			// From Disparity to DSM
 			ossimImageGeometry* master_geom = master_handler->getImageGeometry().get();			
 			test->computeDSM(mean_conversionF, elev, master_geom);
-			
+						
 			// Geocoded DSM generation
 			ossimImageHandler *handler_disp = ossimImageHandlerRegistry::instance()->open(ossimFilename("Temp_DSM.tif"));
 			handler_disp->setImageGeometry(master_geom);       
-			ossimImageFileWriter* writer = ossimImageWriterFactoryRegistry::instance()->createWriter(ossimFilename(argv[5]));
+			ossimImageFileWriter* writer = ossimImageWriterFactoryRegistry::instance()->createWriter(ossimFilename(ap[5]));
 			writer->connectMyInputTo(0, handler_disp);
 			writer->execute();
             
 			delete writer;
 			delete test;				
 		}
-	}      
+	}     
 	catch (const ossimException& e)
 	{
 		ossimNotify(ossimNotifyLevel_WARN) << e.what() << endl;

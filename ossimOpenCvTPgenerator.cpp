@@ -82,6 +82,7 @@ cv::Mat ossimOpenCvTPgenerator::estRT(std::vector<cv::Point2f> master, std::vect
 		 << "mean_y_master = " << master_y << endl
 		 << "mean_x_slave = "  << slave_x  << endl
 		 << "mean_y_slave = "  << slave_y  << endl << endl; 
+
 			
 	std::vector<cv::Point2f> bar_master, bar_slave;
 

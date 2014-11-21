@@ -76,6 +76,17 @@ cv::Mat ossimOpenCvDisparityMapGenerator::execute(cv::Mat master_mat, cv::Mat sl
 	cv::imwrite( "SGM Disparity.tif", array_disp_8U);
 	
 	cv::waitKey(0);
+
+
+	//Create and write the log file
+	ofstream disparity;
+	disparity.open ("DSM_parameters_disparity.txt");
+	disparity <<"DISPARITY RANGE:" << " " << ndisparities << endl;
+	disparity <<"SAD WINDOW SIZE:" << " " << SADWindowSize<< endl;
+	disparity << "MINIMUM DISPARITY VALUE:"<< sgbm.minDisparity << endl;
+	disparity.close();	
+
+
 	
 	return array_disp;
 }
